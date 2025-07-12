@@ -6,33 +6,4 @@ This repository provides the official implementation of the paper:
 
 ---
 
-## 🔍 Overview
-
-3DEKD is a novel explanation-based knowledge distillation method designed to improve both **interpretability** and **accuracy** in LiDAR-based 3D object detection.  
-It integrates 3D attribution maps into the distillation process to help the student model focus on meaningful regions in sparse point cloud data.
-
-<p align="center">
-  <img src="docs/figure 1.png" alt="3DEKD Architecture" width="700"/>
-</p>
-
----
-
-## 📌 Key Features
-
-- 💡 Attribution map generation via [OccAM's Laser](https://github.com/dschinagl/occam)
-- 🧠 Pillar-wise feature selection for sparse region refinement
-- 🔄 Pillar-aligned explanation transfer using cosine similarity loss
-- 📈 Up to **+2.09%** 3D mAP and **+0.84%** BEV mAP improvement on KITTI
-
----
-
-## 🗂️ Folder Structure
-```
-3DEKD/
-├── datasets/   # Dataset processing scripts
-├── docs/       # Figures, architecture diagrams, and supplementary docs
-├── pcdet/      # Core detection framework (OpenPCDet-based modules)
-├── tools/      # Training, evaluation, and visualization scripts
-```
-
 
