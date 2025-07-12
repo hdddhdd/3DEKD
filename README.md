@@ -29,12 +29,10 @@ It integrates 3D attribution maps into the distillation process to help the stud
 ## 🗂️ Folder Structure
 ```
 3DEKD/
-├── cfgs/       # YAML config files for experiments
 ├── datasets/   # Dataset processing scripts
-├── models/     # Model architecture and distillation logic
+├── docs/       # Figures, architecture diagrams, and supplementary docs
+├── pcdet/      # Core detection framework (OpenPCDet-based modules)
 ├── tools/      # Training, evaluation, and visualization scripts
-├── utils/      # Utility and helper functions
-└── docs/       # Figures, architecture diagrams, and supplementary docs
 ```
 
 
