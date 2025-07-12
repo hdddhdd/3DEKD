@@ -19,7 +19,7 @@ It integrates 3D attribution maps into the distillation process to help the stud
 
 ## 📌 Key Features
 
-- 💡 Attribution map generation via [OccAM's Laser](https://arxiv.org/abs/2203.14335)
+- 💡 Attribution map generation via [OccAM's Laser](https://github.com/dschinagl/occam)
 - 🧠 Pillar-wise feature selection for sparse region refinement
 - 🔄 Pillar-aligned explanation transfer using cosine similarity loss
 - 📈 Up to **+2.09%** 3D mAP and **+0.84%** BEV mAP improvement on KITTI
