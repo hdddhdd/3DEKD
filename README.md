@@ -7,7 +7,11 @@ This repository provides the official implementation of the paper:
 
 
 
-## Train
+## Attribution Map Generation
 ```
 python occam_demo_pointpillar.py --model_cfg_file cfgs/kitti_models/pointpillar.yaml --ckpt ../ckpt/pointpillar_7728.pth --imagesets_path ../data/kitti/ImageSets/ --dataset_path ../data/kitti/ --nr_it 3000
+```
+## Train
+```
+python train_occam.py --cfg_file cfgs/kd/p-pillar_occam.yaml --pretrained_model ../ckpt/pointpillar_7728.pth
 ```
