@@ -53,7 +53,7 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
         optimizer.zero_grad()
 
         with torch.cuda.amp.autocast(enabled=use_amp):
-            loss, tb_dict, disp_dict = model_func(model, batch)
+            loss, tb_dict, disp_dict = model_func(model, batch) 
 
         scaler.scale(loss).backward()
         scaler.unscale_(optimizer)
@@ -67,81 +67,30 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
         cur_batch_time = time.time() - end
         end = time.time()
 
-        # average reduce
-        avg_data_time = commu_utils.average_reduce_value(cur_data_time)
-        avg_forward_time = commu_utils.average_reduce_value(cur_forward_time)
-        avg_batch_time = commu_utils.average_reduce_value(cur_batch_time)
-
-        # log to console and tensorboard
+        # Log to console and tensorboard
         if rank == 0:
             batch_size = batch.get('batch_size', None)
-            
-            data_time.update(avg_data_time)
-            forward_time.update(avg_forward_time)
-            batch_time.update(avg_batch_time)
-            losses_m.update(loss.item() , batch_size)
+            data_time.update(cur_data_time)
+            forward_time.update(cur_forward_time)
+            batch_time.update(cur_batch_time)
+            losses_m.update(loss.item(), batch_size)
             
             disp_dict.update({
-                'loss': loss.item(), 'lr': cur_lr, 'd_time': f'{data_time.val:.2f}({data_time.avg:.2f})',
-                'f_time': f'{forward_time.val:.2f}({forward_time.avg:.2f})', 'b_time': f'{batch_time.val:.2f}({batch_time.avg:.2f})'
+                'loss': loss.item(), 'lr': cur_lr,
+                'data_time': f'{data_time.val:.2f}({data_time.avg:.2f})',
+                'forward_time': f'{forward_time.val:.2f}({forward_time.avg:.2f})',
+                'batch_time': f'{batch_time.val:.2f}({batch_time.avg:.2f})'
             })
             
-            if use_logger_to_record:
-                if accumulated_iter % logger_iter_interval == 0 or cur_it == start_it or cur_it + 1 == total_it_each_epoch:
-                    trained_time_past_all = tbar.format_dict['elapsed']
-                    second_each_iter = pbar.format_dict['elapsed'] / max(cur_it - start_it + 1, 1.0)
-
-                    trained_time_each_epoch = pbar.format_dict['elapsed']
-                    remaining_second_each_epoch = second_each_iter * (total_it_each_epoch - cur_it)
-                    remaining_second_all = second_each_iter * ((total_epochs - cur_epoch) * total_it_each_epoch - cur_it)
-                    
-                    logger.info(
-                        'Train: {:>4d}/{} ({:>3.0f}%) [{:>4d}/{} ({:>3.0f}%)]  '
-                        'Loss: {loss.val:#.4g} ({loss.avg:#.3g})  '
-                        'LR: {lr:.3e}  '
-                        f'Time cost: {tbar.format_interval(trained_time_each_epoch)}/{tbar.format_interval(remaining_second_each_epoch)} ' 
-                        f'[{tbar.format_interval(trained_time_past_all)}/{tbar.format_interval(remaining_second_all)}]  '
-                        'Acc_iter {acc_iter:<10d}  '
-                        'Data time: {data_time.val:.2f}({data_time.avg:.2f})  '
-                        'Forward time: {forward_time.val:.2f}({forward_time.avg:.2f})  '
-                        'Batch time: {batch_time.val:.2f}({batch_time.avg:.2f})'.format(
-                            cur_epoch+1,total_epochs, 100. * (cur_epoch+1) / total_epochs,
-                            cur_it,total_it_each_epoch, 100. * cur_it / total_it_each_epoch,
-                            loss=losses_m,
-                            lr=cur_lr,
-                            acc_iter=accumulated_iter,
-                            data_time=data_time,
-                            forward_time=forward_time,
-                            batch_time=batch_time
-                            )
-                    )
-                    
-                    if show_gpu_stat and accumulated_iter % (3 * logger_iter_interval) == 0:
-                        # To show the GPU utilization, please install gpustat through "pip install gpustat"
-                        gpu_info = os.popen('gpustat').read()
-                        logger.info(gpu_info)
-            else:                
-                pbar.update()
-                pbar.set_postfix(dict(total_it=accumulated_iter))
-                tbar.set_postfix(disp_dict)
-                # tbar.refresh()
+            pbar.update()
+            pbar.set_postfix(disp_dict)
 
             if tb_log is not None:
                 tb_log.add_scalar('train/loss', loss, accumulated_iter)
                 tb_log.add_scalar('meta_data/learning_rate', cur_lr, accumulated_iter)
                 for key, val in tb_dict.items():
                     tb_log.add_scalar('train/' + key, val, accumulated_iter)
-            
-            # save intermediate ckpt every {ckpt_save_time_interval} seconds         
-            time_past_this_epoch = pbar.format_dict['elapsed']
-            if time_past_this_epoch // ckpt_save_time_interval >= ckpt_save_cnt:
-                ckpt_name = ckpt_save_dir / 'latest_model'
-                save_checkpoint(
-                    checkpoint_state(model, optimizer, cur_epoch, accumulated_iter), filename=ckpt_name,
-                )
-                logger.info(f'Save latest model to {ckpt_name}')
-                ckpt_save_cnt += 1
-                
+
     if rank == 0:
         pbar.close()
     return accumulated_iter
@@ -153,10 +102,7 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                 merge_all_iters_to_one_epoch=False, use_amp=False,
                 use_logger_to_record=False, logger=None, logger_iter_interval=None, ckpt_save_time_interval=None, show_gpu_stat=False, cfg=None):
     accumulated_iter = start_iter
-
-    # use for disable data augmentation hook
-    hook_config = cfg.get('HOOK', None) 
-    augment_disable_flag = False
+    print("Inside train_model, model_func is:", model_func)
 
     with tqdm.trange(start_epoch, total_epochs, desc='epochs', dynamic_ncols=True, leave=(rank == 0)) as tbar:
         total_it_each_epoch = len(train_loader)
@@ -170,16 +116,9 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
             if train_sampler is not None:
                 train_sampler.set_epoch(cur_epoch)
 
-            # train one epoch
-            if lr_warmup_scheduler is not None and cur_epoch < optim_cfg.WARMUP_EPOCH:
-                cur_scheduler = lr_warmup_scheduler
-            else:
-                cur_scheduler = lr_scheduler
-            
-            augment_disable_flag = disable_augmentation_hook(hook_config, dataloader_iter, total_epochs, cur_epoch, cfg, augment_disable_flag, logger)
             accumulated_iter = train_one_epoch(
                 model, optimizer, train_loader, model_func,
-                lr_scheduler=cur_scheduler,
+                lr_scheduler=lr_scheduler,
                 accumulated_iter=accumulated_iter, optim_cfg=optim_cfg,
                 rank=rank, tbar=tbar, tb_log=tb_log,
                 leave_pbar=(cur_epoch + 1 == total_epochs),
@@ -194,10 +133,9 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                 use_amp=use_amp
             )
 
-            # save trained model
+            # Checkpoint 저장
             trained_epoch = cur_epoch + 1
             if trained_epoch % ckpt_save_interval == 0 and rank == 0:
-
                 ckpt_list = glob.glob(str(ckpt_save_dir / 'checkpoint_epoch_*.pth'))
                 ckpt_list.sort(key=os.path.getmtime)
 
@@ -210,7 +148,7 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                     checkpoint_state(model, optimizer, trained_epoch, accumulated_iter), filename=ckpt_name,
                 )
 
-
+                
 def model_state_to_cpu(model_state):
     model_state_cpu = type(model_state)()  # ordered dict
     for key, val in model_state.items():

@@ -33,18 +33,26 @@ class PillarNet(Detector3DTemplate):
         loss = loss_rpn
         return loss, tb_dict, disp_dict
 
-    def post_processing(self, batch_dict):
-        post_process_cfg = self.model_cfg.POST_PROCESSING
-        batch_size = batch_dict['batch_size']
-        final_pred_dict = batch_dict['final_box_dicts']
-        recall_dict = {}
-        for index in range(batch_size):
-            pred_boxes = final_pred_dict[index]['pred_boxes']
+    # def post_processing(self, batch_dict):
+    #     post_process_cfg = self.model_cfg.POST_PROCESSING
+    #     print('batch_dict.keys(): ', batch_dict.keys())
+    #     batch_size = batch_dict['batch_size']
+    #     # final_pred_dict = batch_dict['final_box_dicts']
+    #     final_pred_dict = batch_dict['batch_box_preds']
+    #     print('final_pred_dict: ', final_pred_dict)
+    #     print('final_pred_dict.shape: ', final_pred_dict.shape)
+        
+    #     recall_dict = {}
+    #     for index in range(batch_size):
+    #         # pred_boxes = final_pred_dict[index]['pred_boxes']
+    #         pred_boxes = final_pred_dict['pred_boxes']
+    #         # pred_boxes = final_pred_dict
+    #         # pred_boxes = final_pred_dict[index]
 
-            recall_dict = self.generate_recall_record(
-                box_preds=pred_boxes,
-                recall_dict=recall_dict, batch_index=index, data_dict=batch_dict,
-                thresh_list=post_process_cfg.RECALL_THRESH_LIST
-            )
+    #         recall_dict = self.generate_recall_record(
+    #             box_preds=pred_boxes,
+    #             recall_dict=recall_dict, batch_index=index, data_dict=batch_dict,
+    #             thresh_list=post_process_cfg.RECALL_THRESH_LIST
+    #         )
 
-        return final_pred_dict, recall_dict
+    #     return final_pred_dict, recall_dict

@@ -425,6 +425,8 @@ class KittiDataset(DatasetTemplate):
         data_dict = self.prepare_data(data_dict=input_dict)
 
         data_dict['image_shape'] = img_shape
+                # 추가
+        data_dict['idx'] = index 
         return data_dict
 
 

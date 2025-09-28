@@ -188,10 +188,27 @@ class DynamicPillarVFESimple2D(VFETemplate):
         return self.num_filters[-1]
 
     def forward(self, batch_dict, **kwargs):
-        points = batch_dict['points']  # (batch_idx, x, y, z, i, e)
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-        points_coords = torch.floor(
-            (points[:, [1, 2]] - self.point_cloud_range[[0, 1]]) / self.voxel_size[[0, 1]]).int()
+        points = batch_dict['points']  # (batch_idx, x, y, z, i, e)
+        ## [측정] 원본
+        # points_coords = torch.floor(
+        #     (points[:, [1, 2]] - self.point_cloud_range[[0, 1]]) / self.voxel_size[[0, 1]]).int()
+
+        ### [측정] 수정 버전
+        point_cloud_range_tensor = torch.tensor(self.point_cloud_range, dtype=torch.float32).to(device)
+        voxel_size_tensor = torch.tensor(self.voxel_size, dtype=torch.float32).to(device)
+        point_cloud_range_selected = point_cloud_range_tensor[0:2]
+
+        points = torch.tensor(points, dtype=torch.float32)
+        points = points.to(device)
+
+        # print('point_cloud_range_tensor: ', point_cloud_range_tensor.type())
+        # print('voxel_size_tensor: ', voxel_size_tensor.type())
+        # print('points.type(): ', points.type())
+        result = ((points[:, [1, 2]] - point_cloud_range_selected) / voxel_size_tensor[0:2]).int()
+        points_coords = torch.floor(result).int()
+        
         mask = ((points_coords >= 0) & (points_coords < self.grid_size[[0, 1]])).all(dim=1)
         points = points[mask]
         points_coords = points_coords[mask]
@@ -238,3 +255,4 @@ class DynamicPillarVFESimple2D(VFETemplate):
         batch_dict['pillar_features'] = features
         batch_dict['pillar_coords'] = pillar_coords
         return batch_dict
+    

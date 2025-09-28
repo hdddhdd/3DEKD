@@ -14,7 +14,8 @@ class PointPillarScatter(nn.Module):
     def forward(self, batch_dict, **kwargs):
         pillar_features, coords = batch_dict['pillar_features'], batch_dict['voxel_coords']
         batch_spatial_features = []
-        batch_size = coords[:, 0].max().int().item() + 1
+        # batch_size = coords[:, 0].max().int().item() + 1
+        batch_size = torch.tensor(coords[:, 0].max()).int().item() + 1
         for batch_idx in range(batch_size):
             spatial_feature = torch.zeros(
                 self.num_bev_features,
@@ -25,7 +26,9 @@ class PointPillarScatter(nn.Module):
             batch_mask = coords[:, 0] == batch_idx
             this_coords = coords[batch_mask, :]
             indices = this_coords[:, 1] + this_coords[:, 2] * self.nx + this_coords[:, 3]
-            indices = indices.type(torch.long)
+            # indices = indices.type(torch.long)
+            indices = torch.tensor(indices).type(torch.long)
+
             pillars = pillar_features[batch_mask, :]
             pillars = pillars.t()
             spatial_feature[:, indices] = pillars
@@ -50,7 +53,9 @@ class PointPillarScatter3d(nn.Module):
         pillar_features, coords = batch_dict['pillar_features'], batch_dict['voxel_coords']
         
         batch_spatial_features = []
-        batch_size = coords[:, 0].max().int().item() + 1
+        # batch_size = coords[:, 0].max().int().item() + 1
+        batch_size = torch.tensor(coords[:, 0].max()).int().item() + 1
+
         for batch_idx in range(batch_size):
             spatial_feature = torch.zeros(
                 self.num_bev_features_before_compression,

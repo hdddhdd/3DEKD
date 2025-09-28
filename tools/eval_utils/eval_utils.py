@@ -77,6 +77,19 @@ def eval_one_epoch(cfg, args, model, dataloader, epoch_id, logger, dist_test=Fal
             batch_dict, pred_dicts, class_names,
             output_path=final_output_dir if args.save_to_file else None
         )
+        # pred_dicts가 그냥 텐서일 경우 수동으로 감싸줘야 함
+        # pred_dicts_wrapped = []
+        # for i in range(batch_dict['batch_size']):
+        #     pred_dicts_wrapped.append({
+        #         'pred_boxes': batch_dict['batch_box_preds'][i],
+        #         'pred_scores': batch_dict['batch_cls_preds'][i],
+        #         'cls_preds_normalized': batch_dict.get('cls_preds_normalized', None)
+        #     })
+
+        # annos = dataset.generate_prediction_dicts(
+        #     batch_dict, pred_dicts_wrapped, class_names,
+        #     output_path=final_output_dir if args.save_to_file else None
+        # )
         det_annos += annos
         if cfg.LOCAL_RANK == 0:
             progress_bar.set_postfix(disp_dict)

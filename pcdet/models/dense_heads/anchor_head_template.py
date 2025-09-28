@@ -125,13 +125,16 @@ class AnchorHeadTemplate(nn.Module):
         one_hot_targets.scatter_(-1, cls_targets.unsqueeze(dim=-1).long(), 1.0)
         cls_preds = cls_preds.view(batch_size, -1, self.num_class)
         one_hot_targets = one_hot_targets[..., 1:]
+        # print("cls_preds shape:", cls_preds.shape)
+        # print("one_hot_targets shape:", one_hot_targets.shape)
+        # print("cls_weights shape:", cls_weights.shape)
         cls_loss_src = self.cls_loss_func(cls_preds, one_hot_targets, weights=cls_weights)  # [N, M]
         cls_loss = cls_loss_src.sum() / batch_size
-
         cls_loss = cls_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['cls_weight']
         tb_dict = {
             'rpn_loss_cls': cls_loss.item()
         }
+
         return cls_loss, tb_dict
 
     @staticmethod

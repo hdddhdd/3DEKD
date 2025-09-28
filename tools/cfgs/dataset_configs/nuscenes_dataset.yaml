@@ -17,7 +17,9 @@ INFO_PATH: {
     'test': [nuscenes_infos_10sweeps_val.pkl],
 }
 
-POINT_CLOUD_RANGE: [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+POINT_CLOUD_RANGE: [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0] 
+# POINT_CLOUD_RANGE:   [-15.0, -15.0, -1.0, 15.0, 15.0, 2.0] ##occam 떄문에 조절
+
 
 BALANCED_RESAMPLING: True 
 
@@ -56,7 +58,7 @@ DATA_AUGMENTOR:
 
 POINT_FEATURE_ENCODING: {
     encoding_type: absolute_coordinates_encoding,
-    used_feature_list: ['x', 'y', 'z', 'intensity', 'timestamp'],
+    used_feature_list: ['x', 'y', 'z', 'intensity','timestamp'], 
     src_feature_list: ['x', 'y', 'z', 'intensity', 'timestamp'],
 }
 

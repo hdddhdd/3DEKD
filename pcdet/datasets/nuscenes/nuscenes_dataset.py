@@ -99,8 +99,12 @@ class NuScenesDataset(DatasetTemplate):
         return points_sweep.T, cur_times.T
 
     def get_lidar_with_sweeps(self, index, max_sweeps=1):
+        # print('/'*50)
+        # print('index:', index)
         info = self.infos[index]
+        # print('info: ', info)
         lidar_path = self.root_path / info['lidar_path']
+        # print('lidar_path:', lidar_path)
         points = np.fromfile(str(lidar_path), dtype=np.float32, count=-1).reshape([-1, 5])[:, :4]
 
         sweep_points_list = [points]
@@ -251,6 +255,9 @@ class NuScenesDataset(DatasetTemplate):
         if not self.dataset_cfg.PRED_VELOCITY and 'gt_boxes' in data_dict:
             data_dict['gt_boxes'] = data_dict['gt_boxes'][:, [0, 1, 2, 3, 4, 5, 6, -1]]
 
+        # 추가
+        data_dict['idx'] = index 
+        
         return data_dict
 
     def evaluation(self, det_annos, class_names, **kwargs):
@@ -309,6 +316,7 @@ class NuScenesDataset(DatasetTemplate):
         result_str, result_dict = nuscenes_utils.format_nuscene_results(metrics, self.class_names, version=eval_version)
         return result_str, result_dict
 
+    # 여기서 info 생성
     def create_groundtruth_database(self, used_classes=None, max_sweeps=10):
         import torch
 
@@ -318,12 +326,12 @@ class NuScenesDataset(DatasetTemplate):
         database_save_path.mkdir(parents=True, exist_ok=True)
         all_db_infos = {}
 
-        for idx in tqdm(range(len(self.infos))):
+        for idx in tqdm(range(len(self.infos))): ## 
             sample_idx = idx
             info = self.infos[idx]
             points = self.get_lidar_with_sweeps(idx, max_sweeps=max_sweeps)
-            gt_boxes = info['gt_boxes']
             gt_names = info['gt_names']
+            gt_boxes = info['gt_boxes']
 
             box_idxs_of_pts = roiaware_pool3d_utils.points_in_boxes_gpu(
                 torch.from_numpy(points[:, 0:3]).unsqueeze(dim=0).float().cuda(),
@@ -374,8 +382,9 @@ def create_nuscenes_info(version, data_path, save_path, max_sweeps=10, with_cam=
     else:
         raise NotImplementedError
 
-    nusc = NuScenes(version=version, dataroot=data_path, verbose=True)
-    available_scenes = nuscenes_utils.get_available_scenes(nusc)
+    print('data_path: ', data_path)
+    nusc = NuScenes(version=version, dataroot=data_path, verbose=True) ## 에러 
+    available_scenes = nuscenes_utils.get_available_scenes(nusc) ##
     available_scene_names = [s['name'] for s in available_scenes]
     train_scenes = list(filter(lambda x: x in available_scene_names, train_scenes))
     val_scenes = list(filter(lambda x: x in available_scene_names, val_scenes))

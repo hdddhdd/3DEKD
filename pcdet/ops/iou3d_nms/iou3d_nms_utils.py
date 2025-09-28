@@ -7,7 +7,7 @@ import torch
 
 from ...utils import common_utils
 from . import iou3d_nms_cuda
-
+import numpy as np
 
 def boxes_bev_iou_cpu(boxes_a, boxes_b):
     """
@@ -54,7 +54,26 @@ def boxes_iou3d_gpu(boxes_a, boxes_b):
     Returns:
         ans_iou: (N, M)
     """
-    assert boxes_a.shape[1] == boxes_b.shape[1] == 7
+    # print('boxes_a.shape[1]: '  , boxes_a.shape)
+    # print('boxes_b.shape[1]: '  , boxes_b.shape)
+    # print('boxes_a: ', boxes_a)
+    # print('boxes_b: ', boxes_b)
+    # assert boxes_a.shape[1] == boxes_b.shape[1] == 9 ########
+
+    if boxes_b.shape[0] == 0:
+        return torch.zeros((boxes_a.shape[0], 0), device='cuda')
+    
+    # print('boxes_a.shape[1]: '  , boxes_a.shape)
+    # print('boxes_b.shape[1]: '  , boxes_b.shape)
+    # print('boxes_a: ', boxes_a)
+    # print('boxes_b: ', boxes_b)
+    
+    ### 추가
+    if isinstance(boxes_b, np.ndarray):
+        boxes_b = torch.tensor(boxes_b)  # numpy.ndarray를 torch.Tensor로 변환
+    if not boxes_b.is_cuda:
+        boxes_b = boxes_b.to('cuda')
+    # print(boxes_a.device, boxes_b.device)
 
     # height overlap
     boxes_a_height_max = (boxes_a[:, 2] + boxes_a[:, 5] / 2).view(-1, 1)
@@ -73,6 +92,8 @@ def boxes_iou3d_gpu(boxes_a, boxes_b):
     # 3d iou
     overlaps_3d = overlaps_bev * overlaps_h
 
+    # print('boxes_a.shape: ', boxes_a.shape)
+    # print('boxes_b.shape: ', boxes_b.shape)
     vol_a = (boxes_a[:, 3] * boxes_a[:, 4] * boxes_a[:, 5]).view(-1, 1)
     vol_b = (boxes_b[:, 3] * boxes_b[:, 4] * boxes_b[:, 5]).view(1, -1)
 

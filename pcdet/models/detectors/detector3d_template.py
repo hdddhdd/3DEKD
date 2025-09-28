@@ -197,6 +197,13 @@ class Detector3DTemplate(nn.Module):
         recall_dict = {}
         pred_dicts = []
         for index in range(batch_size):
+            # print('batch_dict ', batch_dict.keys())
+            # print('check ', batch_dict['final_box_dicts'].shape.__len__())
+            # shape = batch_dict['final_box_dicts'][0]['pred_boxes'].shape
+            # print(shape)
+            # batch_dict['batch_box_preds'] = batch_dict['final_box_dicts'][index]['pred_boxes']
+            # print( batch_dict['batch_box_preds'].shape.__len__())
+            
             if batch_dict.get('batch_index', None) is not None:
                 assert batch_dict['batch_box_preds'].shape.__len__() == 2
                 batch_mask = (batch_dict['batch_index'] == index)
@@ -274,12 +281,27 @@ class Detector3DTemplate(nn.Module):
                 thresh_list=post_process_cfg.RECALL_THRESH_LIST
             )        
 
+            ## 수정
+            raw_cls_preds = batch_dict['batch_cls_preds']  # NMS 이전 점수
+            raw_box_preds = batch_dict['batch_box_preds']  # NMS 이전 박스
+
             record_dict = {
                 'pred_boxes': final_boxes,
                 'pred_scores': final_scores,
-                'pred_labels': final_labels
+                'pred_labels': final_labels,
+                'raw_cls_preds': raw_cls_preds,  # Grad-CAM용 추가 데이터
+                'raw_box_preds': raw_box_preds  # Grad-CAM용 추가 데이터
             }
             pred_dicts.append(record_dict)
+
+
+            ## 원본
+            # record_dict = {
+            #     'pred_boxes': final_boxes,
+            #     'pred_scores': final_scores,
+            #     'pred_labels': final_labels
+            # }
+            # pred_dicts.append(record_dict)
 
         return pred_dicts, recall_dict
 
@@ -365,6 +387,7 @@ class Detector3DTemplate(nn.Module):
         logger.info('==> Loading parameters from checkpoint %s to %s' % (filename, 'CPU' if to_cpu else 'GPU'))
         loc_type = torch.device('cpu') if to_cpu else None
         checkpoint = torch.load(filename, map_location=loc_type)
+        print('checkpoint: ', checkpoint.keys())
         model_state_disk = checkpoint['model_state']
         if not pre_trained_path is None:
             pretrain_checkpoint = torch.load(pre_trained_path, map_location=loc_type)

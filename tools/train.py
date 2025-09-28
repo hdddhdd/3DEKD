@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 
 from pcdet.config import cfg, cfg_from_list, cfg_from_yaml_file, log_config_to_file
 from pcdet.datasets import build_dataloader
-from pcdet.models import build_network, model_fn_decorator
+from pcdet.models import build_network, model_fn_decorator_original
 from pcdet.utils import common_utils
 from train_utils.optimization import build_optimizer, build_scheduler
 from train_utils.train_utils import train_model
@@ -179,7 +179,7 @@ def main():
         model,
         optimizer,
         train_loader,
-        model_func=model_fn_decorator(),
+        model_func=model_fn_decorator_original(),
         lr_scheduler=lr_scheduler,
         optim_cfg=cfg.OPTIMIZATION,
         start_epoch=start_epoch,
@@ -220,11 +220,11 @@ def main():
     eval_output_dir.mkdir(parents=True, exist_ok=True)
     args.start_epoch = max(args.epochs - args.num_epochs_to_eval, 0)  # Only evaluate the last args.num_epochs_to_eval epochs
 
-    repeat_eval_ckpt(
-        model.module if dist_train else model,
-        test_loader, args, eval_output_dir, logger, ckpt_dir,
-        dist_test=dist_train
-    )
+    # repeat_eval_ckpt(
+    #     model.module if dist_train else model,
+    #     test_loader, args, eval_output_dir, logger, ckpt_dir,
+    #     dist_test=dist_train
+    # )
     logger.info('**********************End evaluation %s/%s(%s)**********************' %
                 (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
 
