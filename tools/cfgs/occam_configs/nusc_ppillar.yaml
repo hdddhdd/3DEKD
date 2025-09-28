@@ -1,0 +1,52 @@
+# OCCAM:
+#     NAME: OccAM
+#     # FOV_CROP: True #True #True # approximate KITTI image based FOV sampling
+#     # FOV_ANGLE: 42
+#     FOV_CROP: False #True #True # approximate KITTI image based FOV sampling
+#     # FOV_ANGLE: 42 #42
+#     SAMPLING:
+#         NAME: Sampling # point cloud perturbation
+#         RANDOM_ROT: 5 # random rotation before voxelization
+#         VOXEL_SIZE: [0.2, 0.2, 0.2]
+#         MAX_PTS_PER_VOXEL: 200 # voxel generator settings
+#         MAX_VOXELS: 20000
+#         # density distribution used for sub-sampling (see paper)
+#         # 1 / (a*distance^2 + b*distance + c)
+#         DENSITY_DISTR_COEFF: [0.0055795, 0.23362617, 2.52680692]
+#         LAMBDA: 0.01226 
+
+
+# POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+
+# POINT_CLOUD_RANGE: [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+# OCCAM:
+#     NAME: OccAM
+#     # FOV_CROP: False #True #True # approximate KITTI image based FOV sampling
+#     # # FOV_ANGLE: 180
+#     FOV_CROP: False #True #True # approximate KITTI image based FOV sampling
+#     FOV_ANGLE: 45 # 90 #42
+#     SAMPLING:
+#         NAME: Sampling # point cloud perturbation
+#         RANDOM_ROT: 5 # random rotation before voxelization
+#         # VOXEL_SIZE: [0.2,0.2,0.2]
+#         VOXEL_SIZE: [0.2,0.2,0.2]
+#         MAX_PTS_PER_VOXEL: 200 # voxel generator settings
+#         MAX_VOXELS: 30000
+
+#         DENSITY_DISTR_COEFF: [-0.0002945918390735886, 0.0323741808671347, 0.24584571668963423]
+#         LAMBDA:  0.291199455166358
+
+
+        #########
+OCCAM:
+    NAME: OccAM
+    FOV_CROP: False  # 카메라 기반 FOV 크롭 적용
+    FOV_ANGLE: 70  # 70도 FOV 설정
+    SAMPLING:
+        NAME: Sampling  # 샘플링 방법
+        RANDOM_ROT: 5.0  # 회전 범위 확대 (1.0에서 2.0으로 변경)
+        VOXEL_SIZE: [0.2, 0.2, 0.2]  # 복셀 크기 0.2m로 설정
+        MAX_PTS_PER_VOXEL: 200  # 복셀당 최대 포인트 수
+        MAX_VOXELS: 30000  # 최대 복셀 수
+        DENSITY_DISTR_COEFF: [0.005, 0.15, 3.0]  # 밀도 분포 계수 조정 (첫 번째 계수 0.005로 증가)
+        LAMBDA: 0.7  # 샘플링 확률을 높여서 더 많은 객체 탐지
